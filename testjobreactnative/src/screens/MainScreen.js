@@ -7,12 +7,13 @@ import {
     FlatList,
     ActivityIndicator,
     TouchableOpacity,
-    ScrollView
+    
  } from 'react-native'
 import { Input,Item,Form,Label,Button } from 'native-base'
 import { fetchRepoInfo,fetchMoreRepo } from './../action/repoActions'
+import { fetchStargazer } from './../action/stargazerAction'
 import Loading from './../components/loading'
-const MainScreen = () =>{
+const MainScreen = ({navigation}) =>{
     const dispatch = useDispatch()
     const repos = useSelector(state => state.repo)
     const {loading} = useSelector(state => state.load)
@@ -39,7 +40,7 @@ const MainScreen = () =>{
         return(
             <TouchableOpacity 
              style={styles.loadMore}
-             onPress={() => _handleLoadMoreRepos()}
+             onPress={() => !loading && _handleLoadMoreRepos()}
              >
               {(loading && isLoadMore) ? 
                     <ActivityIndicator size="small" color="red" /> :
@@ -48,6 +49,13 @@ const MainScreen = () =>{
         )
     }
 
+    const _showStargazerScreen = (full_name,stargazers_count) =>{
+        dispatch(fetchStargazer(full_name))
+        navigation.navigate("Stargazer",{
+            stargazers_count,
+            full_name
+        })
+    }
     const _renderListRepo = () =>{
         return (
                 <View style={{flex:1,paddingHorizontal: 32}}>
@@ -65,12 +73,29 @@ const MainScreen = () =>{
                                                             <Text style={{marginRight: 10,fontWeight: 'bold'}}>Id: </Text>
                                                             <Text>{item.node_id}</Text>
                                                         </View>
-                                                        <View style={{flexDirection: 'row',justifyContent: 'flex-start'}}>
+                                                        <View style={{flexDirection: 'row',justifyContent: 'flex-start',marginBottom:10}}>
                                                             <Text style={{marginRight: 10,fontWeight: 'bold'}}>Name: </Text>
                                                             <Text style={{color: 'grey'}}>{item.name}</Text>
                                                         </View>
+                                                        <View style={{flexDirection: 'row',justifyContent: 'flex-start'}}>
+                                                            <Text style={{marginRight: 10,fontWeight: 'bold'}}>Stargazers_count </Text>
+                                                            <Text style={{color: 'grey'}}>{item.stargazers_count}</Text>
+                                                      </View>
+                                                      {/* <TouchableOpacity
+                                                       onPress={() => !loading && _showStargazerScreen(item.full_name,item.stargazers_count)}
+                                                       
+                                                       >
+                                                                <Text style={{fontSize: 16,color:'#0000EE',padding:5}}>Show Stargazers</Text>
+
+                                                            </TouchableOpacity> */}
+                                                             <Button
+                                                                    transparent
+                                                                    onPress={() => !loading && _showStargazerScreen(item.full_name,item.stargazers_count)}
+                                                                    >
+                                                                        <Text style={{fontSize: 16,color:'#0000EE'}}>Show Stargazers</Text>
+                                                                    </Button>
                                                     </View>
-                                                   
+                                                    
                                                 </View>
                                             )
                                         }}
@@ -109,13 +134,13 @@ const MainScreen = () =>{
             <Form>
                 <Item fixedLabel>
                 <Label>Username</Label>
-                <Input value={user} onChangeText={value => setUser(value)} />
+                <Input placeholder="enter name" value={user} onChangeText={value => setUser(value)} />
                 </Item>
             </Form>
             <Button 
                 bordered primary block 
                 style={{marginHorizontal: 50,marginTop: 16}}
-                onPress={() => _handleGetRepo()}
+                onPress={() => !loading && _handleGetRepo()}
                 >
                     {(loading && !isLoadMore) ? <ActivityIndicator size="small" color="red" /> : <Text style={{fontWeight: '500'}}>Get Repositorys</Text>}
             </Button>
@@ -127,6 +152,11 @@ const MainScreen = () =>{
         
         
     )
+}
+MainScreen.navigationOptions= () =>{
+    return {
+        header: null
+    }
 }
 const styles = StyleSheet.create({
     container: {
